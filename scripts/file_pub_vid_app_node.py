@@ -55,7 +55,7 @@ class NepiFilePubVidApp(object):
 
   #Set Initial Values
   MIN_SIZE = 240
-  MAX_SIZE = 2580
+  MAX_SIZE = 3700
   STANDARD_IMAGE_SIZES = ['240 x 320', '480 x 640', '630 x 900','720 x 1080','955 x 600','1080 x 1440','1024 x 768 ','1980 x 2520','2048 x 1536','2580 x 2048','3648 x 2736']
   FACTORY_IMG_SIZE = '630 x 900'
   IMG_PUB_ENCODING_OPTIONS = ["bgr8","rgb8","mono8"]
@@ -119,6 +119,7 @@ class NepiFilePubVidApp(object):
     rospy.Subscriber('~set_size', String, self.setSizeCb)
     rospy.Subscriber('~set_encoding', String, self.setEncodingCb)
     rospy.Subscriber('~set_random', Bool, self.setRandomCb)
+    rospy.Subscriber('~set_overlay', Bool, self.setOverlayCb) 
     rospy.Subscriber('~start_pub', Empty, self.startPubCb)
     rospy.Subscriber('~stop_pub', Empty, self.stopPubCb)
 
@@ -305,7 +306,7 @@ class NepiFilePubVidApp(object):
     new_size = msg.data
     success = False
     try:
-      size = new_size.split("x")
+      size_list = new_size.split("x")
       h = int(size_list[0])
       w = int(size_list[1])
       success = True
@@ -314,7 +315,7 @@ class NepiFilePubVidApp(object):
 
     if success:
       if h >= self.MIN_SIZE and h <= self.MAX_SIZE and w >= self.MIN_SIZE and w <= self.MAX_SIZE:
-        rospy.get_param('~size',new_size)
+        rospy.set_param('~size',new_size)
         self.width = w
         self.height = h
       else:
@@ -324,7 +325,7 @@ class NepiFilePubVidApp(object):
   def setEncodingCb(self,msg):
     new_encoding = msg.data
     if new_encoding in self.IMG_PUB_ENCODING_OPTIONS:
-      rospy.get_param('~encoding',new_encoding)
+      rospy.set_param('~encoding',new_encoding)
     self.publish_status()
 
   def setRandomCb(self,msg):
@@ -332,12 +333,17 @@ class NepiFilePubVidApp(object):
     rospy.set_param('~random',msg.data)
     self.publish_status()
 
+  def setOverlayCb(self,msg):
+      ##nepi_msg.publishMsgInfo(self,msg)
+      overlay = msg.data
+      rospy.set_param('~overlay',overlay)
+      self.publish_status()
 
   def startPubCb(self,msg):
     self.startPub()
 
   def startPub(self):
-   if self.pub_pub == None:
+    if self.pub_pub == None:
       self.pub_pub = rospy.Publisher("~images", Image, queue_size=1, latch=True)
       time.sleep(1)
       current_folder = rospy.get_param('~current_folder', self.init_current_folder)
@@ -381,13 +387,13 @@ class NepiFilePubVidApp(object):
     running = rospy.get_param('~running',self.init_running)
     size = rospy.get_param('~size',self.init_size)
     encoding = rospy.get_param('~encoding',self.init_encoding)
-    random = rospy.get_param('~random',self.init_random)
+    set_random = rospy.get_param('~random',self.init_random)
     overlay = rospy.get_param('~overlay',  self.init_overlay)
 
     if running:
       if self.pub_pub != None:
         # Set current index
-        if random == True and self.paused == False:
+        if set_random == True and self.paused == False:
           self.current_ind = int(random.random() * self.num_files)
         else:
           self.current_ind = self.current_ind + 1
@@ -443,12 +449,16 @@ class NepiFilePubVidApp(object):
                           thickness,
                           lineType)
                   if success:
-                    #Convert image from cv2 to ros
-                    img_out_msg = nepi_img.cv2img_to_rosimg(cv2_img,encoding=encoding)
                     # Publish new image to ros
+                    img_shape = cv2_img.shape     
+                    if encoding == 'mono8' and img_shape[2] == 3:
+                      cv2_img = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2GRAY)
+                    if encoding != 'mono8' and img_shape[2] == 1:
+                      cv2_img = cv2.cvtColor(cv2_img, cv2.COLOR_GRAY2BGR)
+                    out_img_msg = nepi_img.cv2img_to_rosimg(cv2_img,encoding=encoding)
                     if not rospy.is_shutdown():
-                      img_out_msg.header.stamp = rospy.Time.now()
-                      self.pub_pub.publish(img_out_msg) 
+                      out_img_msg.header.stamp = rospy.Time.now()
+                      self.pub_pub.publish(out_img_msg) 
 
     running = rospy.get_param('~running',self.init_running)
     if running == True:
