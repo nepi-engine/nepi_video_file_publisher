@@ -337,7 +337,7 @@ class NepiFilePubVidApp(object):
     self.startPub()
 
   def startPub(self):
-   if self.pub_pub == None:
+    if self.pub_pub == None:
       self.pub_pub = rospy.Publisher("~images", Image, queue_size=1, latch=True)
       time.sleep(1)
       current_folder = rospy.get_param('~current_folder', self.init_current_folder)
