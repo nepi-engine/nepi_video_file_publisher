@@ -385,10 +385,6 @@ class NepiFilePubVidApp(object):
 
   def publishCb(self,timer):
     running = rospy.get_param('~running',self.init_running)
-    size = rospy.get_param('~size',self.init_size)
-    encoding = rospy.get_param('~encoding',self.init_encoding)
-    set_random = rospy.get_param('~random',self.init_random)
-    overlay = rospy.get_param('~overlay',  self.init_overlay)
 
     if running:
       if self.pub_pub != None:
@@ -422,6 +418,10 @@ class NepiFilePubVidApp(object):
             cv2_img = None
             while success == True and running == True and not rospy.is_shutdown():
                 running = rospy.get_param('~running',self.init_running)
+                size = rospy.get_param('~size',self.init_size)
+                encoding = rospy.get_param('~encoding',self.init_encoding)
+                set_random = rospy.get_param('~random',self.init_random)
+                overlay = rospy.get_param('~overlay',  self.init_overlay)
                 if cv2_img is None or self.paused == False or self.oneshot == True:
                   self.oneshot = False
                   # Publish video at native fps
@@ -440,7 +440,7 @@ class NepiFilePubVidApp(object):
                       fontColor = (0, 255, 0)
                       lineType = 1
                       text2overlay=self.current_file
-                      bottomLeftCornerOfText = (10,10)
+                      bottomLeftCornerOfText = (int(self.width*.05),int(self.height*.1))
                       cv2.putText(cv2_img,text2overlay, 
                           bottomLeftCornerOfText, 
                           font, 
