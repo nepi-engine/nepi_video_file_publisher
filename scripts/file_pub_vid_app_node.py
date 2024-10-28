@@ -385,6 +385,10 @@ class NepiFilePubVidApp(object):
 
   def publishCb(self,timer):
     running = rospy.get_param('~running',self.init_running)
+    size = rospy.get_param('~size',self.init_size)
+    encoding = rospy.get_param('~encoding',self.init_encoding)
+    set_random = rospy.get_param('~random',self.init_random)
+    overlay = rospy.get_param('~overlay',  self.init_overlay)
 
     if running:
       if self.pub_pub != None:
