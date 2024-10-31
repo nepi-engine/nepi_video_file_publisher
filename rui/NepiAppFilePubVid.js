@@ -278,9 +278,6 @@ class FilePubVidApp extends Component {
         </Label>
 
         <div hidden={this.state.paused === false}>
-            <ButtonMenu>
-              <Button onClick={() => this.props.ros.sendTriggerMsg(appNamespace + "/step_backward")}>{"Back"}</Button>
-            </ButtonMenu>
 
             <ButtonMenu>
               <Button onClick={() => this.props.ros.sendTriggerMsg(appNamespace + "/step_forward")}>{"Forward"}</Button>
