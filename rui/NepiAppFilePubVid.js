@@ -152,7 +152,6 @@ class FilePubVidApp extends Component {
           )
       this.setState({ 
         statusListener: statusListener,
-        needs_update: false
       })
     }
 
@@ -161,8 +160,7 @@ class FilePubVidApp extends Component {
   componentDidUpdate(prevProps, prevState, snapshot) {
     const namespace = this.getAppNamespace()
     const namespace_updated = (prevState.appNamespace !== namespace && namespace !== null)
-    const needs_update = (this.state.needs_update && namespace !== null)
-    if (namespace_updated || needs_update) {
+    if (namespace_updated) {
       if (namespace.indexOf('null') === -1){
         this.setState({appNamespace: namespace})
         this.updateStatusListener()
@@ -346,6 +344,9 @@ class FilePubVidApp extends Component {
 
 
  render() {
+    if (this.state.needs_update === true){
+      this.setState({needs_update: false})
+    }
     const {sendTriggerMsg} = this.props.ros
     const appNamespace = this.state.appNamespace
     const folderOptions = this.createFolderOptions()
